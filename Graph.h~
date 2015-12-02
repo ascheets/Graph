@@ -1,0 +1,205 @@
+#pragma once
+#include <iostream>
+#include "GraphExceptions.h"
+#include "SafeArray/SafeArray.h"
+
+using namespace std;
+
+template <class T>
+class Graph
+{
+ public:
+    Graph();
+    ~Graph();
+
+    void addVertex(T& v);
+
+    void print();
+
+ private:
+    //methods
+    bool find(T& v);
+    void resize();
+
+    //data members
+    
+    //non-allocatable
+    SafeArray <T> vertices;
+    
+    //number of vertices
+    int numElements;
+    //number of spaces allocated
+    int capacity;
+
+    //allocatable
+    int** edges;
+};
+
+//ctor
+template <class T>
+Graph <T> :: Graph()
+{
+    //intialize numElements
+    numElements = 0;
+
+    //by default start with capacity of 10
+    int capacity = 10;
+
+    //initialize edges
+    //create an array of capacity int pointers
+    edges = new int*[capacity];
+
+    //for each row
+    for(int i = 0; i < capacity; i++)
+    {
+	//create single dimension array of ints
+	//store in corresponding int pointer
+	edges[i] = new int[capacity];
+    }
+
+    //all rows and cols
+    for(int i = 0; i < capacity; i++)
+    {
+	for(int j = 0; j < capacity; j++)
+	{
+	    //initialize all weights to be zero
+	    edges[i][j] = 0;
+	}
+    }
+}
+
+//dtor
+template <class T>
+Graph <T> :: ~Graph()
+{
+
+
+}
+
+//addVertex
+template <class T>
+void Graph <T> :: addVertex(T& v)
+{
+    //is element already a vertex?
+    if(find(v))
+    {
+	cout << "Exception...element already in graph" << endl;
+	//GraphException error;
+	//throw error;
+    }
+    else
+    {
+	//update numElements
+	numElements++;
+	
+	//set data in vertices    
+	vertices.push_back(v);
+	
+	//update adjacency matrix if needed
+	if(numElements > capacity)
+	{
+	    resize();
+	}	
+    }
+}
+
+//find
+template <class T>
+bool Graph <T> :: find(T& v)
+{
+    bool retVal = false;
+
+    for(int i = 0; i < vertices.size(); i++)
+    {
+	if(vertices[i] == v)
+	{
+	    retVal = true;
+	    break;
+	}
+    }
+
+    return retVal;
+
+}
+
+//resize
+template <class T>
+void Graph <T> :: resize()
+{
+    //want to double capacity in this function...
+
+    //temp Matrix for copying purposes
+    int** temp;
+    //new capacity of matrix
+    int newCap = capacity*2;
+
+    //initialize tempMatrix
+    temp = new int*[newCap];
+
+    //for each row...
+    for(int i = 0; i < newCap; i++)
+    {
+	temp[i] = new int[newCap];
+    }
+
+    //all rows and cols
+    for(int i = 0; i < newCap; i++)
+    {
+	for(int j = 0; j < newCap; j++)
+	{
+	    //initialize all weights to be zero
+	    temp[i][j] = 0;
+	}
+    }
+
+    //now, copy old info into temp
+    for(int i = 0; i < capacity; i++)
+    {
+	for(int j = 0; j < capacity; j++)
+	{
+	    temp[i][j] = edges[i][j];	    
+	}
+    }
+
+    //the deed is done, handle memories
+    
+    //toDelete points to old edges
+    int** toDelete = edges;
+
+    //edges points to new edges
+    edges = temp;
+
+    //delete oldEdges
+    //for each row
+    for(int i = 0; i < capacity; i++)
+    {
+	//delete each row in the 2d array
+	delete [] toDelete[i];
+    }
+
+    //update capacity
+    capacity = newCap;
+
+}
+
+//print
+template <class T>
+void Graph <T> :: print()
+{
+    //print vertices
+    vertices.print();
+
+    //all rows and cols
+    for(int i = 0; i < capacity; i++)
+    {
+	for(int j = 0; j < capacity; j++)
+	{
+	    cout << edges[i][j] << " ";
+
+	}	
+	
+	cout << endl;
+
+    }
+
+}
