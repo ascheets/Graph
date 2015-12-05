@@ -23,18 +23,21 @@ class Graph
     SafeArray <T*> getOutgoingNeighbors(const T& vertex);
     void print();
     void myPrint();
+    void printRoutingTable();
 
  private:
     //methods
     bool find(const T& v);
     void resize();
     int findIndex(const T& v);
-
+    void printStars();
+ 
     //data members
     
     //non-allocatable
     SafeArray <T> vertices;
-    
+    SafeArray <T*> sortedVertices;
+
     //number of vertices
     int numElements;
     //number of spaces allocated
@@ -81,8 +84,15 @@ Graph <T> :: Graph()
 template <class T>
 Graph <T> :: ~Graph()
 {
-
-
+    //make sure to delete allocatable members
+    
+    //delete edges
+    //for each row
+    for(int i = 0; i < capacity; i++)
+    {
+	//delete each row in the 2d array
+	delete [] edges[i];
+    }
 }
 
 //addVertex
@@ -128,6 +138,31 @@ void Graph <T> :: setEdge(T& from, T& to, int weight)
 template <class T>
 void Graph <T> :: topSort()
 {
+    //first of all, clear previous sortedVertices array if not empty
+    while(!(sortedVertices.isEmpty()))
+    {
+	sortedVertices.pop_back();
+    }
+
+    //make a copy of the edges matrix
+    int** edgesCopy = new int*[numElements];
+
+    //for each row
+    for(int i = 0; i < numElements; i++)
+    {
+	edgesCopy[i] = new int[numElements];
+    }	
+
+    //for all rows and cols
+    for(int i = 0; i <numElements; i++)
+    {
+	for(int j = 0; j < numElements; j++)
+	{
+	    //set edgesCopy[i][j] to edges[i][j]
+	    edgesCopy[i][j] = edges[i][j];
+	}
+    }
+
     //use this array to keep track of where have been
     SafeArray <int> traversed;
 
@@ -164,7 +199,7 @@ void Graph <T> :: topSort()
 		{
 		    //if the entry is not zero, this destination...
 		    //has a prerequisite destination
-		    if(edges[i][j] != 0)
+		    if(edgesCopy[i][j] != 0)
 		    {
 			hasIncoming = true;
 			//have found out that this node has incoming
@@ -182,11 +217,13 @@ void Graph <T> :: topSort()
 		    //remove outgoing edges
 		    for(int i = 0; i < numElements; i++)
 		    {
-			edges[j][i] = 0;
+			edgesCopy[j][i] = 0;
 		    }
 
 		    //add this column to the traversed list
 		    traversed.push_back(j);
+		    //add this column to the list of sorted vertices
+		    sortedVertices.push_back(&(vertices.at(j)));
 
 		    //want to restart loop as adjacency matrix...
 		    //has been modified
@@ -194,6 +231,15 @@ void Graph <T> :: topSort()
 		}
 	    }
 	}
+    }
+
+    //make sure to delete edgesCopy here
+
+    //for each row
+    for(int i = 0; i < numElements; i++)
+    {
+	//delete each row
+	delete [] edgesCopy[i];
     }
 }
 
@@ -268,6 +314,8 @@ SafeArray <T*> Graph <T> :: getIncomingNeighbors(const T& vertex)
 	    retArray.push_back(elemAddress);
 	}
     }
+
+    return retArray;
 }
 
 //getOutgoingNeighbors
@@ -295,6 +343,8 @@ SafeArray <T*> Graph <T> :: getOutgoingNeighbors(const T& vertex)
 	    retArray.push_back(elemAddress);
 	}
     }
+
+    return retArray;
 
 }
 
@@ -406,6 +456,48 @@ void Graph <T> :: print()
     //print each vertex and all of...
     //its incoming/outgoing neighbors
 
+    //for each vertex in vertices
+    for(int p = 0; p < vertices.size(); p++)
+    {
+	printStars();
+
+	cout << vertices.at(p) << endl;
+
+	cout << "Incoming neighbors: " << endl;
+
+	const SafeArray <T*> & incoming = getIncomingNeighbors(vertices.at(p));
+
+	//print incoming neighbors
+
+	for(int q = 0; q < incoming.size(); q++)
+	{
+	    for(int r = 0; r < 10; r++)
+	    {
+		cout << " ";
+	    }
+
+	    cout << *(incoming.at(q)) << endl;
+	}				 
+
+	cout << "Outgoing neighbors: " << endl;
+
+	const SafeArray <T*> & outgoing = getOutgoingNeighbors(vertices.at(p));
+
+	//print outgoing neighbors
+
+	for(int q = 0; q < outgoing.size(); q++)
+	{
+	    for(int r = 0; r < 10; r++)
+	    {
+		cout << " ";
+	    }
+
+	    cout << *(outgoing.at(q)) << endl;
+	}
+
+	printStars();
+    }
+
 }
 
 //myPrint
@@ -426,6 +518,128 @@ void Graph <T> :: myPrint()
 	
 	cout << endl;
 
+    }
+
+}
+
+//printStars
+template <class T>
+void Graph <T> :: printStars()
+{
+    for(int i = 0; i < 30; i++)
+    {
+	cout << "*";
+    }
+
+    cout << endl;
+}
+
+//printRoutingTable
+template <class T>
+void Graph <T> :: printRoutingTable()
+{
+    //topologically sort array of the vertices
+    topSort();
+
+    //topSort refreshes sortedVertices
+    sortedVertices.print();
+
+    //for each node, treating each node as source
+    //and incrementing source each iteration...
+    for(int source = 0; source < sortedVertices.size(); source++)
+    {
+	//create a SafeArray for this particular...
+	//node's predecessor nodes
+	T* predecessors[numElements];
+
+	//initialize array of predessors
+	for(int i = 0; i < numElements; i++)
+	{
+	    predecessors[0] = 0;
+	}	
+
+	//initialize a dValues SafeArray
+	//this array holds the distance from the current source...
+	//to the node in question
+	SafeArray <int> dValues(numElements);
+
+	//initialize all but source node dValues to be infinite
+	for(int r = 0; r < dValues.size(); r++)
+	{
+	    if(r == source)
+		dValues.at(r) = 0;
+	    else
+		dValues.at(r) = 1000000;
+	}
+
+	//dValues.print();
+
+	//starting from source and continuing to end of sortedGraph
+	//relax all of the edges
+	for(int currentNode = source; currentNode < sortedVertices.size(); currentNode++)
+	{
+	    //get outgoing neighbors
+	    const SafeArray <T*> & outgoing = getOutgoingNeighbors(*(sortedVertices.at(currentNode)));
+
+	    //for all of the outgoing neighbors, relax edges
+	    for(int q = 0; q < outgoing.size(); q++)
+	    {
+		//need to find index of outgoing in sorted array
+		int outgoingIndex = -1;
+		
+		for(int s = 0; s < sortedVertices.size(); s++)
+		{
+		    if(sortedVertices.at(s) == outgoing.at(q))
+		    {
+			outgoingIndex = s;
+			break;
+		    }
+		}
+
+		//find the original index in edges matrix of
+		//currentNode and outgoingNode
+		int currentOriginalIndex = findIndex(*(sortedVertices.at(currentNode)));
+		int outgoingOriginalIndex = findIndex(*(sortedVertices.at(outgoingIndex)));
+
+		//if distance from source to outgoing is larger than
+		//distance from source to currentNode plus
+		//distance from currentNode to outgoing
+		if(dValues.at(outgoingIndex) > dValues.at(currentNode) + 
+		   edges[currentOriginalIndex][outgoingOriginalIndex])
+		{
+		    //set dValue at outgoingIndex to smaller distance
+		    dValues.at(outgoingIndex) = dValues.at(currentNode) + 
+			edges[currentOriginalIndex][outgoingOriginalIndex];
+		    
+		    //set the predecessor of outgoing to the currentNode
+		    predecessors[outgoingIndex] = sortedVertices.at(currentNode);
+		}
+	    }
+	}
+
+	//for this node as source, print out predecessors
+	cout << "SOURCE NODE: " << *(sortedVertices.at(source)) << endl;
+			
+	for(int i = 0; i < numElements; i++)
+	{
+	    if(dValues.at(i) < 1000000 &&
+	       dValues.at(i) != 0)
+	    {
+		if(*(predecessors[i]) == *(sortedVertices.at(source)))
+		{
+		    cout << *(sortedVertices.at(i)) << ": " <<  dValues.at(i) << 
+			" Next hop: " << *(sortedVertices.at(i)) << endl;
+		}
+		else
+		{
+		    cout << *(sortedVertices.at(i)) << ": " <<  dValues.at(i) << 
+		    " Next hop: " << *(predecessors[i]) << endl;
+		}		    
+	    }
+	}
+
+	cout << endl << endl;
+	
     }
 
 }

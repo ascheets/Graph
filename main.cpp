@@ -20,7 +20,9 @@ int main()
 	string minneapolis = "Minneapolis, MN";
 	string orlando = "Orlando, FL";
 	string newHaven = "New Haven, CT";
-
+	string portland = "Portland, ME";
+	string tucson = "Tucson, AZ"; 
+	
 	//add the locations to the graph
 	graph.addVertex(chicago);
 	graph.addVertex(newYork);
@@ -32,6 +34,8 @@ int main()
 	graph.addVertex(minneapolis);
 	graph.addVertex(orlando);
 	graph.addVertex(newHaven);
+	graph.addVertex(portland);
+	graph.addVertex(tucson);
 
 	//create routes between the cities
 	//chicago destinations
@@ -45,12 +49,14 @@ int main()
 	graph.setEdge(minneapolis, newHaven, 1056);
 	graph.setEdge(newHaven, newYork, 67);
 	graph.setEdge(orlando, newYork, 940);
+	graph.setEdge(newYork, portland, 240);
 
 	//west coast routes
 	graph.setEdge(seattle, sanFrancisco, 681);
 	graph.setEdge(boulder, sanFrancisco, 938);
 	graph.setEdge(stLouis, tempe, 1264);
 	graph.setEdge(tempe, sanFrancisco, 663);
+	graph.setEdge(newYork, tucson, 3000);
 
 	//print all the vertex info
 	graph.print();
@@ -58,8 +64,8 @@ int main()
 	//find a path through the graph
 	graph.topSort();
 
-	// //find the routes through the graph
-	// graph.printRoutingTable();
+	//find the routes through the graph
+	graph.printRoutingTable();
 
 	return 0;
 }
