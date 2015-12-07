@@ -138,6 +138,10 @@ void Graph <T> :: setEdge(T& from, T& to, int weight)
 template <class T>
 void Graph <T> :: topSort()
 {
+    printStars();
+
+    cout << "Finding a path through the graph, calling topSort" << endl;
+
     //first of all, clear previous sortedVertices array if not empty
     while(!(sortedVertices.isEmpty()))
     {
@@ -241,6 +245,8 @@ void Graph <T> :: topSort()
 	//delete each row
 	delete [] edgesCopy[i];
     }
+
+    printStars();
 }
 
 //size
@@ -542,7 +548,7 @@ void Graph <T> :: printRoutingTable()
     topSort();
 
     //topSort refreshes sortedVertices
-    sortedVertices.print();
+    //sortedVertices.print();
 
     //for each node, treating each node as source
     //and incrementing source each iteration...
@@ -618,23 +624,41 @@ void Graph <T> :: printRoutingTable()
 	}
 
 	//for this node as source, print out predecessors
-	cout << "SOURCE NODE: " << *(sortedVertices.at(source)) << endl;
+	cout << "SOURCE NODE: " << *(sortedVertices.at(source)) << " to: " << endl;
 			
 	for(int i = 0; i < numElements; i++)
 	{
 	    if(dValues.at(i) < 1000000 &&
 	       dValues.at(i) != 0)
 	    {
-		if(*(predecessors[i]) == *(sortedVertices.at(source)))
+	    	cout << *(sortedVertices.at(i)) << ": " << 
+		    " total weight: " << dValues.at(i) << " ";
+
+		int searchInt = i;
+		T* predecessor;
+
+		//trace predecessors up to source node
+		while(searchInt != source)
 		{
-		    cout << *(sortedVertices.at(i)) << ": " <<  dValues.at(i) << 
-			" Next hop: " << *(sortedVertices.at(i)) << endl;
+		    predecessor = predecessors[searchInt];
+
+		    //cout << *(predecessors[searchInt]) << endl; 
+		    
+		    if(predecessor == sortedVertices.at(source))
+			break;
+
+		    //find the index of predecessor in the sorted array
+		    for(int j = 0; j < sortedVertices.size(); j++)
+		    {
+			if(sortedVertices.at(j) == predecessor)
+			{
+			    searchInt = j;
+			    break;
+			}
+		    }
 		}
-		else
-		{
-		    cout << *(sortedVertices.at(i)) << ": " <<  dValues.at(i) << 
-		    " Next hop: " << *(predecessors[i]) << endl;
-		}		    
+
+		cout << "Next hop: " << *(sortedVertices.at(searchInt)) << endl;
 	    }
 	}
 

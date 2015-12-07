@@ -39,6 +39,7 @@ int main()
 
 	//create routes between the cities
 	//chicago destinations
+
 	graph.setEdge(chicago, minneapolis, 354);
 	graph.setEdge(chicago, seattle, 1736);
 	graph.setEdge(chicago, boulder, 927);
